@@ -2,7 +2,7 @@
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/32597777/154869877-655ec5ce-3099-43ef-a583-1cbf5997766b.jpg" width="900"><br>
-Example style transfer results for a matrix-based Rényi's cross-entropy adversarial autoencoder (MBRCE-AAE).  The goal is to transfer coarse facial features from the source images on the top row to the target images in the left column.  Here, we have trained the network on the CelebA face dataset at 256x256 resolution.
+Style mixture results when using the CelebA dataset (256x256 resolution).  We consider seven source images, shown in the top row.  For each image, we want to transfer high-level characteristics to three target images, shown in the left-most column.  Such characteristics include facial pose and shape, hair parting style, nose shape and size, amongst other attributes.  We do this by mapping to and from the latent space learned by the MBRCE-AAEs and a space of characteristics.  The characteristic space specifies where, in the latent space, the style-mixed sample should be drawn.  This sample can then be fed to the MBRCE-AAE decoder to produce an image.  The results suggest a fair amount of generative factor disentanglement is possible.  This naturally leads to the generation of highly variable, and thus rather realistic, samples.
 </p>
 
 ## Paper Overview
@@ -16,11 +16,9 @@ IEEE Transactions on Information Theory (under review) [arXiv: <a href="https://
 
 Perhaps the biggest advantage of our measures is that they are suitable for any distribution.  They are not limited to just analyzing Gaussians, for example.  They are also not limited to analyzing unimodal distributions.<br>
 
-We have shown that these properties are present in practice.  For instance, the measures empirically converge at essentially the same rate, regardless of the distribution dimensionality.  They also return cross-entropy magnitudes that are intuitively aligned with those from classical measures.<br>
-
 In an extended set of experiments, we highlighted that our measures can be applied to deep learning.  We used them to generalize variational autoencoders to handle arbitrary priors.  This enabled us to consider multi-modal, adversarial priors within convolutional networks to model complicated imagery.<br>  
 
-As a part of these experiments, we had several interesting findings.  We proved that our chosen priors are theoretically guaranteed to permit our autoencoders to behave like principled generative models.  That is, they can produce synthetic samples that are ensured to be indistinguishable from real samples.  Our empirical results lend credence to this claim.  They handily outperform variational autoencoders.  Likewise, our results are shown to be on par with those from recent generative-adversarial networks.  This is surprising in its own right.  Generative-adversarial networks are widely viewed to be far more capable than variational autoencoders at generating realistic synthetic data.  It is even more surprising that our network can do this without directly learning a sample discriminator.  Rather, it simply leverages the prior to simultaneously push away and pull back synthetically generated samples in a way that enhances their realism over time.  Without our information-theoretic measures, achieving such behavior would have been difficult and much less straightforward.<br>
+As a part of these experiments, we had several interesting findings.  We proved that our chosen priors are theoretically guaranteed to permit our autoencoders to behave like principled generative models.  That is, they can produce synthetic samples that are ensured to be indistinguishable from real samples.  Our empirical results lend credence to this claim.  They handily outperform variational autoencoders.  Likewise, our results are shown to be on par with those from recent generative-adversarial networks.  This is surprising in its own right.  Generative-adversarial networks are widely viewed to be far more capable than variational autoencoders at generating realistic synthetic data.  It is even more surprising that our network can do this without directly learning a sample discriminator.  Rather, it simply leverages the prior to simultaneously push away and pull back synthetically generated samples in a way that systematically enhances their realism over time.<br>
 
 Our extended experiments also reinforce manly of the claims that we made throughout.  They indicate that our measures can be used in very high-dimensional spaces where estimators like Parzen windows would be ineffective.  Our measures also work well with few samples.  They, additionally, can converge either as quickly or more quickly than dimensionally sensitive estimators.  We theoretically prove this claim, at least for the case where evidence-lower-bound optimization is used in conjunction with variational inference.<br>
 
@@ -98,7 +96,7 @@ In the case of the CelebA dataset, you can show this via
     python3 generate_mbrceaee_samples.py -c ./configs/celeba-256x256.yaml
     python3 generate_mbrceaee_generate_reconstructions.py -c ./configs/celeba-256x256.yaml
 
-This first script will produce a series of 1,024 facial images, which are located at `results/celeba-256x256-generated-samples/`.  Some examples are shown below, with the total set having an FID score of 13.72.
+This first script will produce 1,024 facial images, which will be located at `results/celeba-256x256-generated-samples/`.  Some examples are shown below.
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/32597777/154878202-3c77d7bc-7482-4851-a620-8a76b56a88c4.jpg" width="900"><br>
@@ -112,7 +110,7 @@ The second script will process all test-set imagery and store the results in `re
 Example reconstructed test-set imagery for an MBRCE-AAE.  The top row contains the input imagery while the bottom row contains the MBRCE-AAE's reconstruction response.  The goal of the network is to reduce discrepancies between its responses and the inputs while penalizing the synthetic responses that it generates.  If the MBRCE-AAE has been trained well, then the reconstructions should heavily resemble the inputs.  Here, we have trained the network on the CelebA face dataset at 256x256 resolution.
 </p>
 
-Due to how the MBRCE-AAEs are trained, they will not faithfully reproduce the training- and test-set imagery until very late in the training process.  However, even after only two hundred epochs, the networks have learned to compose human faces, model lighting, and integrate backgrounds well.
+Due to how the MBRCE-AAEs are trained, they will not faithfully reproduce the training- and test-set imagery until very late in the training process.  However, even after only two hundred epochs, the networks have learned to compose human faces, model lighting, and integrate backgrounds well.  The posterior has thus started to converge to the distribution of the training set.
 
 A reason why MBRCE-AAEs do well is that they heavily concentrate the embedding probability mass around the encoded training samples.  Due to this property, it may seem that they would only produce realistic results in local regions around the embedded training samples.  We have provided two scripts to demonstrate that this is not true, at least when the MBRCE-AAEs have been trained well.  The first `generate_mbrceaee_interp_samples.py` performs a multi-image interpolation process and displays the intermediate results.  This interpolation is conducted in the embedding space, with images being formed via the MBRCE-AAE's decoder branch.  The second, `generate_mbrceae_stylemix_samples.py` performs coarse-to-fine style mixing, transferring low-level and high-level attributes across image pairs.  This is done using a style-based generator network.
 
@@ -124,7 +122,7 @@ produces the following result for images `00275.jpg` (top left corner), `00056.j
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/32597777/154886282-af9162ba-e131-4dde-b0a1-8eb22a7115fe.jpg" width="900"><br>
-Multi-image interpolation results for an MBRCE-AAE.  Each corner of the grid shows a different source image used to seed the interpolation.  The goal of the network is to generate intermediate facial images by linearly interpolating within the latent embedding space.  If the MBRCE-AAE has been trained well, then there should be a mostly smooth transition between any pair of faces in the grid.   Here, we have trained the network on the CelebA face dataset at 256x256 resolution.
+Reconstructed images formed by linearly interpolating, in the latent embedding space, between four source images from the CelebA dataset (256x256 resolution).  Each source image is shown on the grid corners.  Intermediate images, formed at equally spaced points between source images, are shown in the remainder of the grid.  The interpolation yields smooth, realistic transitions between each source image despite changes in skin tone, facial orientation, hair color, hair style, facial shape, and additional attributes.  This suggests that the MBRCE-AAEs learn a perceptually meaningful distribution of the imagery, as predicted by our theory.  Such a distribution captures well the large variations within the source imagery.
 </p>
 
 Lastly, running
@@ -135,12 +133,16 @@ can be used to produce the following results like the following for the images l
 
 <p align="center">
   <img src="https://user-images.githubusercontent.com/32597777/154885103-89758685-8e4b-4674-a340-823d2a5b252f.jpg" width="900"><br>
-Example style transfer results for an MBRCE-AAE.  The goal is to transfer coarse facial features from the source images on the top row to the target images in the left column.  Here, we have trained the network on the CelebA face dataset at 256x256 resolution.
+Style mixture results when using the CelebA dataset (256x256 resolution).  We consider seven source images, shown in the top row.  For each image, we want to transfer high-level characteristics to three target images, shown in the left-most column.  Such characteristics include facial pose and shape, hair parting style, nose shape and size, amongst other attributes.  We do this by mapping to and from the latent space learned by the MBRCE-AAEs and a space of characteristics.  The characteristic space specifies where, in the latent space, the style-mixed sample should be drawn.  This sample can then be fed to the MBRCE-AAE decoder to produce an image.
 </p>
 
 Here, we have only shown the coarse transfer results.
 
-These results are the state of the art for adversarial autoencoder networks.  They are on roughly par with generative-adversarial networks from two to three years ago.  As we will show in an upcoming paper, the FID score can be nearly halved by integrating data augmentation processes within the stochastic game played by the network.  This substantially improves all aspects of the generated results presented above.
+In both cases, the results suggest that a smoothly varying perceptual embedding distribution has been learned by this point in training.  If the MBRCE-AAEs did not learn such a distribution, then we would expect to see significant artifacts in the interpolations.  Likewise, we would expect many errors in the style mixture results, such as large pose discrepancies, poorly transferred facial expressions, and incorrect hair styles.
+
+These results are the state of the art for adversarial autoencoder networks.  The corresponding MBRCE-AAE had an FID of 14.72 for CelebA while the best known score for adversarial latent autoencoders (ALAEs) is 19.21.  The FID scores for many other benchmark datasets, like Flickr Faces, Animal Faces, LSUN Bedroom, LSUN Living room, and LSUN Dining room, are reported in our paper.  We report FID scores that are over twenty-five percent better than ALAEs with no change to the underlying architecture.  These results also are on roughly par with generative-adversarial networks from two to three years ago.  Most top GANs, nowadays, produce FID scores of 2 to 7 on these datasets.
+
+As we will show in an upcoming paper, the FID scores of a modified MBRCE-AAE can be reduced to anywhere from 8 to 11 for many benchmark datasets.  This is done by integrating data augmentation processes within the stochastic game played by the network.  It is also achieved by altering the adversarial autoencoder network architecture and intelligently compressing the Gram matrix representation.  Achieving this lower FID score substantially improves all aspects of the generated results presented above.
 
 
 ## Acknowledgements
